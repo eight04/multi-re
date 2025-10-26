@@ -1,0 +1,54 @@
+{
+  "name": "multi-re",
+  "version": "0.0.0",
+  "description": "Compile multiple regex into one. Match text with multiple patterns efficiently.",
+  "keywords": [
+    "regex",
+    "regexp",
+    "combine",
+    "multiple"
+  ],
+  "homepage": "https://github.com/eight04/multi-re",
+  "bugs": {
+    "url": "https://github.com/eight04/multi-re/issues",
+    "email": "eight04@gmail.com"
+  },
+  "license": "MIT",
+  "author": "eight <eight04@gmail.com>",
+  "main": "index.mjs",
+  "repository": "eight04/multi-re",
+  "devDependencies": {
+    "@open-wc/testing": "^4.0.0",
+    "c8": "^10.1.3",
+    "dts-buddy": "^0.6.2",
+    "eslint": "^9.20.1",
+    "eslint-plugin-compat": "^6.0.2",
+    "shx": "^0.4.0",
+    "typescript": "5.8.x"
+  },
+  "scripts": {
+    "test": "eslint . && node --test --test-reporter spec --test-reporter-destination stdout --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=lcov.info",
+    "build-types": "dts-buddy",
+    "preversion": "npm test",
+    "version": "npm run build-types && git add .",
+    "postversion": "git push --follow-tags && npm publish"
+  },
+  "browserslist": [
+    "Firefox >= 56"
+  ],
+  "eslintIgnore": [
+    "dist"
+  ],
+  "files": [
+    "dist",
+    "lib"
+  ],
+  "type": "module",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./types/index.d.ts"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+	"version": 3,
+	"file": "index.d.ts",
+	"names": [
+		"MultiRegExpMatch",
+		"MultiRegExp",
+		"Replacer"
+	],
+	"sources": [
+		"../index.js"
+	],
+	"sourcesContent": [
+		null
+	],
+	"mappings": ";;;;cAgBaA,gBAAgBA;;;;;;;;;;;;;;;;;;;cA8DhBC,WAAWA;;;;;;;;;;;aA7EyBC,QAAQA",
+	"ignoreList": []
+}
