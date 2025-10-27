@@ -1,5 +1,6 @@
 /**
  * Evaluate the replacement string/function with the given match and group info.
+ *
  * @param {string|Function} repl - The replacement string or function.
  * @param {RegExpMatchArray} match - The match array.
  * @param {{offset: number, length?: number}} groupInfo - Information about the capturing groups. If repl is a string, length is optional.
@@ -27,10 +28,11 @@ export function evalRepl(repl, match, groupInfo) {
 
 /**
  * Compiles multiple patterns into a single RegExp.
+ *
  * @param {Array<string>} patterns - An array of regex pattern strings.
  * @param {string} [flags] - Optional flags for the RegExp.
- * @param {boolean} [captureAll=true] - If true, add capture group to each pattern to detect which pattern matched.
- * @returns {[RegExp, groupInfos: GroupInfo[]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
+ * @param {boolean} [captureAll] - If true (default), add capture group to each pattern to detect which pattern matched.
+ * @returns {[RegExp, groupInfos: GroupInfo[]]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
  */
 export function compile(patterns, flags, captureAll = true) {
   const infos = patterns.map(p => analyzeRe(p));
@@ -62,7 +64,9 @@ function analyzeRe(source) {
 
 /**
  * Creates a multi RegExp executor that can execute multiple regexps on the same string then return the earliest match.
- * The matching speed is slightly slower than combining the regexps into one, but you don't have to find which pattern matched from the capturing gruops.
+ *
+ * The matching speed is slower than combining the regexps into one when the string is very long. On the other hand, it can be faster when the string is short and there are many regexps to match so searching patternIndex is slow in compiled regex.
+ *
  * @param {RegExp[]} rxs - An array of RegExp objects. They should have the 'g' flag set.
  * @returns {{exec: function(string): RegExpMatchArray|null, lastRx: RegExp, lastIndex: number}} An object with an exec method.
  */

@@ -17,15 +17,29 @@ Usage
 -----
 
 ```JavaScript
-const {MultiRegExp} = require("multi-re");
+import {compile, evalRepl} from "multi-re";
 
-const rx = new MultiRegExp([
-  /foo/,
-  /bar/,
-  /baz/
-]);
-for (let match; (match = rx.exec("foobarbaz")) !== null; ) {
-  console.log(`Matched pattern #${match.index}: ${match[0]}`);
+const [rx, groupInfos] = compile([
+  /foo(\d+)/,
+  /bar(\d+)/,
+  /baz(\d+)/
+].map(r => r.source), "g");
+
+const s = "test foo123 bar456 baz789 foo000";
+
+let match;
+while ((match = rx.exec(s)) !== null) {
+  const matchedPatternIndex = groupInfos.findIndex(
+    info => match[info.offset] !== undefined
+  );
+
+  console.log(`Matched pattern #${matchedPatternIndex}:`);
+  console.log(match[0]);
+  console.log(match[groupInfos[matchedPatternIndex].offset + 1]);
+
+  // evalRepl is a helper function to evaluate replacement patterns
+  const replacement = evalRepl("$1_replaced", match, groupInfos[matchedPatternIndex]);
+  console.log(`Replacement: ${replacement}`);
 }
 ```
 
@@ -34,10 +48,20 @@ API references
 
 Check the [.d.ts file](./index.d.ts) for TypeScript type definitions.
 
-Performance
------------
+Benchmark
+---------
+`npm run bench`:
 
-TBD. Compare the performance of `MultiRegExp` with running multiple regex separately.
+```
+┌─────────┬───────────────────────────────┬──────────────────┬───────────────────┬────────────────────────┬────────────────────────┬─────────┐
+│ (index) │ Task name                     │ Latency avg (ns) │ Latency med (ns)  │ Throughput avg (ops/s) │ Throughput med (ops/s) │ Samples │
+├─────────┼───────────────────────────────┼──────────────────┼───────────────────┼────────────────────────┼────────────────────────┼─────────┤
+│ 0       │ 'compile'                     │ '9830.9 ± 0.74%' │ '8300.0 ± 100.00' │ '114018 ± 0.10%'       │ '120482 ± 1469'        │ 101720  │
+│ 1       │ 'compile, find pattern index' │ '10078 ± 0.63%'  │ '8900.0 ± 200.00' │ '107647 ± 0.09%'       │ '112360 ± 2583'        │ 99226   │
+│ 2       │ 'compile, no captureAll'      │ '9419.1 ± 0.60%' │ '8300.0 ± 100.00' │ '114941 ± 0.09%'       │ '120482 ± 1469'        │ 106167  │
+│ 3       │ 'multiReExecutor'             │ '16746 ± 0.80%'  │ '14500 ± 200.00'  │ '64070 ± 0.13%'        │ '68966 ± 938'          │ 59715   │
+└─────────┴───────────────────────────────┴──────────────────┴───────────────────┴────────────────────────┴────────────────────────┴─────────┘
+```
 
 Changelog
 ---------

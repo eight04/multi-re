@@ -2,9 +2,9 @@
 	"version": 3,
 	"file": "index.d.ts",
 	"names": [
-		"MultiRegExpMatch",
-		"MultiRegExp",
-		"Replacer"
+		"evalRepl",
+		"compile",
+		"multiReExecutor"
 	],
 	"sources": [
 		"../index.js"
@@ -12,6 +12,6 @@
 	"sourcesContent": [
 		null
 	],
-	"mappings": ";;;;cAgBaA,gBAAgBA;;;;;;;;;;;;;;;;;;;cA8DhBC,WAAWA;;;;;;;;;;;aA7EyBC,QAAQA",
+	"mappings": ";;;;;;;;;iBAQgBA,QAAQA;;;;;;;;;;;;;iBA4BRC,OAAOA;;;;;;;;;iBAoCPC,eAAeA",
 	"ignoreList": []
 }

@@ -32,7 +32,8 @@
     "build-types": "dts-buddy",
     "preversion": "npm test",
     "version": "npm run build-types && git add .",
-    "postversion": "git push --follow-tags && npm publish"
+    "postversion": "git push --follow-tags && npm publish",
+    "bench": "node bench.js"
   },
   "browserslist": [
     "Firefox >= 56"

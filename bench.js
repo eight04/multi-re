@@ -32,7 +32,7 @@ const bench = new Bench();
 
   bench.add("compile, find pattern index", () => {
     let match;
-    rx.lastIndex = 0;
+    // rx.lastIndex = 0;
     while ((match = rx.exec(testString)) !== null) {
       // find which pattern matched
       let patternIndex = -1;
@@ -62,7 +62,7 @@ const bench = new Bench();
   const rx = multiReExecutor(patterns);
   bench.add("multiReExecutor", () => {
     let match;
-    rx.lastIndex = 0;
+    // rx.lastIndex = 0;
     while ((match = rx.exec(testString)) !== null) {
       // do nothing
     }
