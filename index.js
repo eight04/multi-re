@@ -1,140 +1,104 @@
 /**
- * @typedef {function(MultiRegExpMatch): string} Replacer
- *
- * @typedef {object} Pattern
- * @property {string} pattern - The string pattern to match.
- * @property {string|Replacer} [replace] - Optional replacement string.
- *
- * @typedef {object} PatternInfo
- * @property {Array<string>} groupNames - The names of the capturing groups.
- * @property {number} groupCount - The number of capturing groups.
- * @property {number} startingGroup - The starting index of the capturing groups in the combined pattern.
+ * Evaluate the replacement string/function with the given match and group info.
+ * @param {string|Function} repl - The replacement string or function.
+ * @param {RegExpMatchArray} match - The match array.
+ * @param {{offset: number, length?: number}} groupInfo - Information about the capturing groups. If repl is a string, length is optional.
+ * @returns {string} The result.
+ */
+export function evalRepl(repl, match, groupInfo) {
+  if (typeof repl === 'function') {
+    return repl(match[0], ...match.slice(groupInfo.offset + 1, groupInfo.offset + 1 + groupInfo.length));
+  }
+  return repl.replace(/\$([0-9]+|&)/g, (_, g1) => {
+    if (g1 === '&') {
+      return match[0];
+    }
+    const index = Number(g1);
+    return match[groupInfo.offset + index] || '';
+  });
+}
+
+/**
+ * @typedef {object} GroupInfo
+ * @property {string[]} names - The names of the capturing groups.
+ * @property {number} length - The number of capturing groups.
+ * @property {number} offset - The offset of the group indexes in the combined RegExp. Use `match[info.offset + n]` to access the nth capturing group of the pattern. When `captureAll` is true, `match[info.offset + 0]` is the extra capturing group added to detect which pattern matched.
  */
 
 /**
- * Creates a MultiRegExpMatch instance. You should not call this constructor directly.
+ * Compiles multiple patterns into a single RegExp.
+ * @param {Array<string>} patterns - An array of regex pattern strings.
+ * @param {string} [flags] - Optional flags for the RegExp.
+ * @param {boolean} [captureAll=true] - If true, add capture group to each pattern to detect which pattern matched.
+ * @returns {[RegExp, groupInfos: GroupInfo[]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
  */
-export class MultiRegExpMatch extends Array {
-  /**
-   * @param {RegExpExecArray} match - The match array from RegExp.exec().
-   * @param {object} options
-   * @param {number} options.patternIndex - The index of the matched pattern.
-   * @param {Pattern} options.pattern - The pattern object that matched.
-   * @param {PatternInfo} options.info - Information about the pattern's groups.
-   */
-  constructor(match, { patternIndex, pattern, info }) {
-    super(info.groupCount + 1);
-    this.patternIndex = patternIndex;
-    this.pattern = pattern;
-    this.info = info;
-    this[0] = match[0];
-    // FIXME: can we slice a match?
-    for (let i = 0; i < info.groupCount; i++) {
-      this[1 + i] = match[1 + i + 1 + info.startingGroup];
-    }
-    this.index = match.index;
-    this.input = match.input;
-    this.groups = undefined;
-    if (info.groupNames.length > 0) {
-      this.groups = {};
-      for (const name of info.groupNames) {
-        this.groups[name] = match.groups[name];
-      }
-    }
-    if (match.indices) {
-      this.indices = [
-        match.indices[0],
-        ...match.indices.slice(1 + info.startingGroup, 1 + info.startingGroup + info.groupCount)
-      ];
-      if (info.groupNames.length > 0) {
-        this.indices.groups = {};
-        for (const name of info.groupNames) {
-          this.indices.groups[name] = match.indices.groups[name];
-        }
-      }
-    }
+export function compile(patterns, flags, captureAll = true) {
+  const infos = patterns.map(p => analyzeRe(p));
+  infos[0].offset = captureAll ? 1 : 0;
+  for (let i = 1; i < infos.length; i++) {
+    infos[i].offset = infos[i - 1].offset + infos[i - 1].length + (captureAll ? 1 : 0);
   }
-  replace() {
-    if (this.pattern.replace === undefined) {
-      return this[0];
-    }
-    if (typeof this.pattern.replace === 'string') {
-      // FIXME: would this work?
-      // return this[0].replace(new RegExp(this.pattern.pattern, 'g'), this.pattern.replace);
-      return this.pattern.replace.replace(/\$([0-9]+|&)/g, (match, g1) => {
-        if (g1 === '&') {
-          return this[0];
-        }
-        const index = Number(g1);
-        return this[index] !== undefined ? this[index] : '';
-      });
-    }
-    if (typeof this.pattern.replace === 'function') {
-      return this.pattern.replace(this);
-    }
-    throw new Error('MultiRegExpMatch replace: invalid replace type');
-  }
-}
-
-export class MultiRegExp extends RegExp {
-  /**
-   * Creates a MultiRegExp that matches any of the provided patterns.
-   * @param {Array<Pattern>} patterns - An array of string patterns to combine.
-   * @param {string} [flags] - Optional flags for the RegExp.
-   */
-  constructor(patterns, flags) {
-    const infos = patterns.map(p => analyzeRe(p.pattern));
-    infos[0].startingGroup = 0;
-    for (let i = 1; i < infos.length; i++) {
-      infos[i].startingGroup = infos[i - 1].startingGroup + infos[i - 1].groupCount + 1; // we will wrap each pattern in an extra group
-    }
-    for (let i = 0; i < patterns.length; i++) {
-      // rewrite backreferences in pattern
-      patterns[i].pattern = patterns[i].pattern.replace(/\\(\d+)/g, (match, g1) => {
-        const originalIndex = Number(g1);
-        const newIndex = originalIndex + infos[i].startingGroup + 1;
-        return `\\${newIndex}`;
-      });
-    }
-    super(patterns.map(pat => `(${pat.pattern})`).join('|'), flags);
-    this.patterns = patterns;
-    this.infos = infos;
-  }
-  exec(str) {
-    const match = super.exec(str);
-    if (match === null) {
-      return null;
-    }
-    // find which pattern matched
-    let patternIndex = -1;
-    for (let i = 0; i < this.infos.length; i++) {
-      if (match[this.infos[i].startingGroup + 1] !== undefined) {
-        patternIndex = i;
-        break;
-      }
-    }
-    if (patternIndex === -1) {
-      throw new Error('MultiRegExp exec: matched but could not find matching pattern');
-    }
-    return new MultiRegExpMatch(match, {
-      patternIndex,
-      pattern: this.patterns[patternIndex],
-      info: this.infos[patternIndex],
+  for (let i = 0; i < patterns.length; i++) {
+    // rewrite backreferences in pattern
+    patterns[i] = patterns[i].replace(/\\(\d+)/g, (match, g1) => {
+      const originalIndex = Number(g1);
+      const newIndex = originalIndex + infos[i].offset + (captureAll ? 1 : 0);
+      return `\\${newIndex}`;
     });
   }
+  const rx = new RegExp(patterns.map(pat => `(${pat})`).join('|'), flags);
+  return [rx, infos];
 }
 
-/**
- * Analyzes a regular expression pattern string to determine its capturing groups.
- * @param {string} source - The regular expression pattern string.
- * @returns {PatternInfo} Information about the pattern's capturing groups.
- */
 function analyzeRe(source) {
   const re = new RegExp(source + '|');
   const match = re.exec('');
   return {
-    groupNames: re.groups ? Object.keys(re.groups) : [],
-    groupCount: match.length - 1,
-    startingGroup: 0,
+    names: re.groups ? Object.keys(re.groups) : [],
+    length: match.length - 1,
+    offset: 0,
   };
+}
+
+/**
+ * Creates a multi RegExp executor that can execute multiple regexps on the same string then return the earliest match.
+ * The matching speed is slightly slower than combining the regexps into one, but you don't have to find which pattern matched from the capturing gruops.
+ * @param {RegExp[]} rxs - An array of RegExp objects. They should have the 'g' flag set.
+ * @returns {{exec: function(string): RegExpMatchArray|null, lastRx: RegExp, lastIndex: number}} An object with an exec method.
+ */
+export function multiReExecutor(rxs) {
+  const cases = rxs.map(rx => ({rx, done: false, match: null}));
+  const self = {exec, lastRx: null, lastIndex: 0};
+  return self;
+
+  function exec(s) {
+    let match = null;
+    for (const c of cases) {
+      if (c.done) {
+        continue;
+      }
+      if (c.match && c.match.index < self.lastIndex || !c.match) {
+        // the cached match is before lastIndex, skip it
+        c.rx.lastIndex = self.lastIndex;
+        c.match = c.rx.exec(s);
+      }
+      if (!c.match) {
+        c.done = true;
+        continue;
+      }
+      if (!match || c.match.index < match.index) {
+        match = c.match;
+        self.lastRx = c.rx;
+      }
+    }
+    if (match) {
+      self.lastIndex = match.index + match[0].length;
+      return match;
+    }
+    self.lastIndex = 0;
+    for (const c of cases) {
+      c.done = false;
+    }
+    return null;
+  }
 }

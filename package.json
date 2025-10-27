@@ -24,6 +24,7 @@
     "eslint": "^9.20.1",
     "eslint-plugin-compat": "^6.0.2",
     "shx": "^0.4.0",
+    "tinybench": "^5.1.0",
     "typescript": "5.8.x"
   },
   "scripts": {

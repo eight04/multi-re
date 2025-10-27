@@ -1,68 +1,69 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import {MultiRegExp} from "../index.js";
+import {compile, multiReExecutor, evalRepl} from "../index.js";
 
-test("match multiple regexp", () => {
-  const rx = new MultiRegExp([
-    { pattern: /foo(\d+)/.source },
-    { pattern: /bar(\d+)/.source }
-  ], "g");
-  
-  const s = "test foo123 test bar456 test"
+test("compile", () => {
+  const [rx, gs] = compile([
+    /foo(\d+)/,
+    /(\d+)/
+  ].map(r => r.source), "g");
+
+  const s = "test foo123 test bar456 test";
   let match = rx.exec(s);
   assert.equal(match[0], "foo123");
-  assert.equal(match[1], "123");
-  assert.equal(match.patternIndex, 0);
+  assert.equal(match[gs[0].offset + 1], "123");
   assert.equal(match.index, 5);
   assert.equal(rx.lastIndex, 11);
 
   match = rx.exec(s);
-  assert.equal(match[0], "bar456");
-  assert.equal(match[1], "456");
-  assert.equal(match.patternIndex, 1);
-  assert.equal(match.index, 17);
+  assert.equal(match[0], "456");
+  assert.equal(match[gs[1].offset + 1], "456");
+  assert.equal(match.index, 20);
   assert.equal(rx.lastIndex, 23);
 });
 	
-test("overlap: true", {skip: true}, () => {
-  const rx = new MultiRegExp([
-    { pattern: /foo(\d+)/.source },
-    { pattern: /(\d+)/.source }
-  ], {overlap: true});
+test("multiReExecutor", () => {
+  const rxs = [
+    /foo(\d+)/g,
+    /(\d+)/g
+  ];
+  const rx = multiReExecutor(rxs);
 
   const s = "test foo123 test bar456 test";
   let match = rx.exec(s);
-  assert.equal(match.patternIndex, 0);
   assert.equal(match[0], "foo123");
   assert.equal(match[1], "123");
   assert.equal(match.index, 5);
-  assert.equal(rx.lastIndex, 1);
+  assert.equal(rx.lastIndex, 11);
+  assert.equal(rx.lastRx, rxs[0]);
 
   match = rx.exec(s);
-  assert.equal(match.patternIndex, 1);
-  assert.equal(match[0], "123");
-  assert.equal(match.index, 8);
-  assert.equal(rx.lastIndex, 9); // FIXME: shouldn't overlap with itself?
+  assert.equal(match[0], "456");
+  assert.equal(match[1], "456");
+  assert.equal(match.index, 20);
+  assert.equal(rx.lastIndex, 23);
+  assert.equal(rx.lastRx, rxs[1]);
 });
-	
-test("replace", () => {
-  const rx = new MultiRegExp([
-    {
-      pattern: /foo(\d+)/.source,
-      replace: (match) => `FOO[${match[1]}]`
-    },
-    {
-      pattern: /bar(\d+)/.source,
-      replace: "BAR[$1]"
-    }
-  ], "g");
+  
+test("evalRepl", () => {
+  const rxs = [
+    /foo(\d+)/g,
+    /bar(\d+)/g
+  ];
+  const repls = [
+    (match, g1) => `FOO[${g1}]`,
+    "BAR[$1]"
+  ];
+  const [rx, gs] = compile(rxs.map(r => r.source), "g");
 
   const s = "test foo123 test bar456 test";
   let match = rx.exec(s);
-  assert.equal(match.replace(), "FOO[123]");
+  let i = gs.findIndex(g => match[g.offset] !== undefined);
+  assert.equal(evalRepl(repls[i], match, gs[i]), "FOO[123]");
   
   match = rx.exec(s);
-  assert.equal(match.replace(), "BAR[456]");
+  i = gs.findIndex(g => match[g.offset] !== undefined);
+  assert.equal(evalRepl(repls[i], match, gs[i]), "BAR[456]");
 });
 
