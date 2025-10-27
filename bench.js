@@ -45,6 +45,14 @@ const bench = new Bench();
       }
     }
   });
+
+  const rx2 = multiReExecutor([rx]);
+  bench.add("multiReExecutor overhead", () => {
+    let match;
+    while ((match = rx2.exec(testString)) !== null) {
+      // do nothing
+    }
+  });
 }
 
 {
