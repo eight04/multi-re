@@ -1,6 +1,6 @@
 {
   "name": "multi-re",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Compile multiple regex into one. Match text with multiple patterns efficiently.",
   "keywords": [
     "regex",
