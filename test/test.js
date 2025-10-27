@@ -88,7 +88,7 @@ test("evalRepl", () => {
   match = rx.exec(s);
   i = gs.findIndex(g => match[g.offset] !== undefined);
   assert.equal(evalRepl(repls[i], match, gs[i]), "BAR[456]");
-  // you don't need to provide the group info for entire string
+  // you don't need to provide the group info if there is no group reference
   assert.equal(evalRepl("{$&}", match, null), "{bar456}");
 });
 
