@@ -66,6 +66,10 @@ Benchmark
 Changelog
 ---------
 
+* 0.1.2 (Oct 27, 2025)
+
+  - Fix: pacakaging issue.
+
 * 0.1.1 (Oct 27, 2025)
 
   - Fix: back reference bug.
