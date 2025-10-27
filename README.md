@@ -66,6 +66,10 @@ Benchmark
 Changelog
 ---------
 
+* 0.1.1 (Oct 27, 2025)
+
+  - Fix: back reference bug.
+
 * 0.1.0 (Oct 27, 2025)
 
   - First release
