@@ -27,18 +27,34 @@ export function evalRepl(repl, match, groupInfo) {
  */
 
 /**
+ * @typedef {object} CompileOptions
+ * @property {string} [flags] - The flags for the RegExp.
+ * @property {boolean} [captureAll] - If true (default), add capture group to each pattern to detect which pattern matched.
+ * @property {string} [prefix] - Prefix the entire regex. This shouldn't contain capturing groups.
+ * @property {string} [suffix] - Suffix the entire regex. This shouldn't contain capturing groups.
+ */
+
+/**
  * Compiles multiple patterns into a single RegExp.
  *
  * @param {Array<string>} patterns - An array of regex pattern strings.
- * @param {string} [flags] - Optional flags for the RegExp.
- * @param {boolean} [captureAll] - If true (default), add capture group to each pattern to detect which pattern matched.
+ * @param {string|CompileOptions} [flagsOrOptions] - Optional flags for the RegExp.
  * @returns {[RegExp, groupInfos: GroupInfo[]]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
  */
-export function compile(patterns, flags, captureAll = true) {
+export function compile(patterns, flagsOrOptions) {
+  let options;
+  if (typeof flagsOrOptions === 'string' || flagsOrOptions === undefined) {
+    options = {flags: flagsOrOptions};
+  } else {
+    options = flagsOrOptions;
+  }
+  if (options.captureAll === undefined) {
+    options.captureAll = true;
+  }
   const infos = patterns.map(p => analyzeRe(p));
-  infos[0].offset = captureAll ? 1 : 0;
+  infos[0].offset = options.captureAll ? 1 : 0;
   for (let i = 1; i < infos.length; i++) {
-    infos[i].offset = infos[i - 1].offset + infos[i - 1].length + (captureAll ? 1 : 0);
+    infos[i].offset = infos[i - 1].offset + infos[i - 1].length + (options.captureAll ? 1 : 0);
   }
   for (let i = 0; i < patterns.length; i++) {
     // rewrite backreferences in pattern
@@ -48,7 +64,16 @@ export function compile(patterns, flags, captureAll = true) {
       return `\\${newIndex}`;
     });
   }
-  const rx = new RegExp(patterns.map(pat => `(${pat})`).join('|'), flags);
+  let pattern = patterns.map((pat) => {
+    if (options.captureAll) {
+      return `(${pat})`;
+    }
+    return pat;
+  }).join('|');
+  if (options.prefix || options.suffix) {
+    pattern = `${options.prefix || ''}(?:${pattern})${options.suffix || ''}`;
+  }
+  const rx = new RegExp(pattern, options.flags);
   return [rx, infos];
 }
 
