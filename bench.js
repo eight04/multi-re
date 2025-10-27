@@ -48,7 +48,7 @@ const bench = new Bench();
 }
 
 {
-  const [rx, infos] = compile(patterns.map(pat => pat.source), "g", false);
+  const [rx, infos] = compile(patterns.map(pat => pat.source), { captureAll: false, flags: "g" });
 
   bench.add("compile, no captureAll", () => {
     let match;
