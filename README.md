@@ -66,6 +66,6 @@ Benchmark
 Changelog
 ---------
 
-* 0.1.0 
+* 0.1.0 (Oct 27, 2025)
 
   - First release
