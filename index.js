@@ -45,7 +45,7 @@ export function evalRepl(repl, match, groupInfo) {
 export function compile(patterns, flagsOrOptions) {
   let options;
   if (typeof flagsOrOptions === 'string' || flagsOrOptions === undefined) {
-    options = {flags: options || '', captureAll: true};
+    options = {flags: flagsOrOptions};
   } else {
     options = flagsOrOptions;
   }
