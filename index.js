@@ -44,7 +44,7 @@ export function compile(patterns, flags, captureAll = true) {
     // rewrite backreferences in pattern
     patterns[i] = patterns[i].replace(/\\(\d+)/g, (match, g1) => {
       const originalIndex = Number(g1);
-      const newIndex = originalIndex + infos[i].offset + (captureAll ? 1 : 0);
+      const newIndex = originalIndex + infos[i].offset;
       return `\\${newIndex}`;
     });
   }

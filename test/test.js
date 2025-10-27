@@ -22,6 +22,29 @@ test("compile", () => {
   assert.equal(match.index, 20);
   assert.equal(rx.lastIndex, 23);
 });
+
+test("back references", () => {
+  const [rx, gs] = compile([
+    /(foo)(\d+)\2/,
+    /(bar)(\d+)\2/
+  ].map(r => r.source), "g");
+
+  console.log(rx.source)
+  const s = "test foo123123 test bar456456 test";
+  let match = rx.exec(s);
+  assert.equal(match[0], "foo123123");
+  assert.equal(match[gs[0].offset + 1], "foo");
+  assert.equal(match[gs[0].offset + 2], "123");
+  assert.equal(match.index, 5);
+  assert.equal(rx.lastIndex, 14);
+
+  match = rx.exec(s);
+  assert.equal(match[0], "bar456456");
+  assert.equal(match[gs[1].offset + 1], "bar");
+  assert.equal(match[gs[1].offset + 2], "456");
+  assert.equal(match.index, 20);
+  assert.equal(rx.lastIndex, 29);
+});
 	
 test("multiReExecutor", () => {
   const rxs = [
@@ -65,5 +88,7 @@ test("evalRepl", () => {
   match = rx.exec(s);
   i = gs.findIndex(g => match[g.offset] !== undefined);
   assert.equal(evalRepl(repls[i], match, gs[i]), "BAR[456]");
+  // you don't need to provide the group info for entire string
+  assert.equal(evalRepl("{$&}", match, null), "{bar456}");
 });
 
