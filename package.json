@@ -15,7 +15,6 @@
   },
   "license": "MIT",
   "author": "eight <eight04@gmail.com>",
-  "main": "index.mjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eight04/multi-re.git"
@@ -51,6 +50,7 @@
   "exports": {
     ".": {
       "import": "./index.js",
+      "require": "./index.js",
       "types": "./types/index.d.ts"
     }
   }
