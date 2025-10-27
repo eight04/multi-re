@@ -42,9 +42,12 @@ export function evalRepl(repl, match, groupInfo) {
  * @param {boolean} [captureAll] - If true (default), add capture group to each pattern to detect which pattern matched.
  * @returns {[RegExp, groupInfos: GroupInfo[]]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
  */
-export function compile(patterns, options) {
-  if (typeof options === 'string' || options === undefined) {
+export function compile(patterns, flagsOrOptions) {
+  let options;
+  if (typeof flagsOrOptions === 'string' || flagsOrOptions === undefined) {
     options = {flags: options || '', captureAll: true};
+  } else {
+    options = flagsOrOptions;
   }
   if (options.captureAll === undefined) {
     options.captureAll = true;

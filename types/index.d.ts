@@ -12,15 +12,16 @@ declare module 'multi-re' {
 		length?: number;
 	}): string;
 
+
 	/**
 	 * Compiles multiple patterns into a single RegExp.
 	 *
 	 * @param patterns - An array of regex pattern strings.
-	 * @param flags - Optional flags for the RegExp.
+	 * @param flagsOrOptions - Optional flags for the RegExp.
 	 * @param captureAll - If true (default), add capture group to each pattern to detect which pattern matched.
 	 * @returns A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
 	 */
-	export function compile(patterns: Array<string>, flags?: string, captureAll?: boolean): [RegExp, groupInfos: GroupInfo[]];
+	export function compile(patterns: Array<string>, flagsOrOptions?: string | CompileOptions): [RegExp, groupInfos: GroupInfo[]];
 	/**
 	 * Creates a multi RegExp executor that can execute multiple regexps on the same string then return the earliest match.
 	 *
@@ -47,6 +48,24 @@ declare module 'multi-re' {
 		 * - The offset of the group indexes in the combined RegExp. Use `match[info.offset + n]` to access the nth capturing group of the pattern. When `captureAll` is true, `match[info.offset + 0]` is the extra capturing group added to detect which pattern matched.
 		 */
 		offset: number;
+	};
+	export type CompileOptions = {
+		/**
+		 * - The flags for the RegExp.
+		 */
+		flags?: string;
+		/**
+		 * - If true (default), add capture group to each pattern to detect which pattern matched.
+		 */
+		captureAll?: boolean;
+		/**
+		 * - Prefix the entire regex. This shouldn't contain capturing groups.
+		 */
+		prefix?: string;
+		/**
+		 * - Suffix the entire regex. This shouldn't contain capturing groups.
+		 */
+		suffix?: string;
 	};
 
 	export {};
