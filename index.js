@@ -39,7 +39,6 @@ export function evalRepl(repl, match, groupInfo) {
  *
  * @param {Array<string>} patterns - An array of regex pattern strings.
  * @param {string|CompileOptions} [flagsOrOptions] - Optional flags for the RegExp.
- * @param {boolean} [captureAll] - If true (default), add capture group to each pattern to detect which pattern matched.
  * @returns {[RegExp, groupInfos: GroupInfo[]]} A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
  */
 export function compile(patterns, flagsOrOptions) {

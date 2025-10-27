@@ -18,7 +18,6 @@ declare module 'multi-re' {
 	 *
 	 * @param patterns - An array of regex pattern strings.
 	 * @param flagsOrOptions - Optional flags for the RegExp.
-	 * @param captureAll - If true (default), add capture group to each pattern to detect which pattern matched.
 	 * @returns A RegExp that matches any of the provided patterns. groupInfos contains information about the capturing groups of each pattern.
 	 */
 	export function compile(patterns: Array<string>, flagsOrOptions?: string | CompileOptions): [RegExp, groupInfos: GroupInfo[]];
