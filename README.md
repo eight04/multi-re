@@ -46,7 +46,7 @@ while ((match = rx.exec(s)) !== null) {
 API references
 --------------
 
-Check the [.d.ts file](./index.d.ts) for TypeScript type definitions.
+Check the [.d.ts file](./types/index.d.ts) for TypeScript type definitions.
 
 Benchmark
 ---------
