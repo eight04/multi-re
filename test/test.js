@@ -67,6 +67,9 @@ test("multiReExecutor", () => {
   assert.equal(match.index, 20);
   assert.equal(rx.lastIndex, 23);
   assert.equal(rx.lastRx, rxs[1]);
+
+  match = rx.exec(s);
+  assert.equal(match, null);
 });
   
 test("evalRepl", () => {
