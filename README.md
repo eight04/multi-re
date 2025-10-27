@@ -66,6 +66,11 @@ Benchmark
 Changelog
 ---------
 
+* 0.2.0 (Oct 27, 2025)
+
+  - Change: the signature of `compile` is changed.
+  - Add: `prefix`, `suffix` options to `compile`.
+
 * 0.1.2 (Oct 27, 2025)
 
   - Fix: pacakaging issue.
